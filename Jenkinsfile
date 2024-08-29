@@ -79,7 +79,7 @@ pipeline {
 
                                               
                         echo "Inferring ML trees by CMAPLE"                        
-                        sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX}
+                        sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${params.CMAPLE_PARAMS} ${ML_TREE_PREFIX}
                         
                        
                         exit

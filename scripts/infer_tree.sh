@@ -5,7 +5,8 @@
 ALN_DIR=$1 # aln dir
 TREE_DIR=$2 # tree dir
 CMAPLE_PATH=$3 # path to CMAPLE executable
-ML_TREE_PREFIX=$4 # The prefix of ML trees
+CMAPLE_PARAMS=$4 # CMAPLE params
+ML_TREE_PREFIX=$5 # The prefix of ML trees
 
 
 ### pre steps #####
@@ -17,7 +18,7 @@ ML_TREE_PREFIX=$4 # The prefix of ML trees
 aln_files=$(ls  "${ALN_DIR}"/*.maple)
 for aln in ${aln_files}; do
     echo "Inferring a phylogenetic tree from ${aln}"
-    ./${CMAPLE_PATH} -aln ${ALN_DIR}/${aln} -pre ${ALN_DIR}/${ML_TREE_PREFIX}${aln} ${params.CMAPLE_PARAMS}
+    ./${CMAPLE_PATH} -aln ${ALN_DIR}/${aln} -pre ${ALN_DIR}/${ML_TREE_PREFIX}${aln} ${CMAPLE_PARAMS}
 done
                         
 echo "Moving the ML trees to ${TREE_DIR}"
