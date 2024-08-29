@@ -70,6 +70,8 @@ pipeline {
                         ssh ${NCI_ALIAS} << EOF
                         cd  ${WORKING_DIR}
 						
+						for aln in $(ls  "${ALN_DIR}"/*.maple); do echo "Inferring a phylogenetic tree from ${aln}"; done
+    						
                         echo "Moving the ML trees to ${TREE_DIR}"
                         mkdir -p ${TREE_DIR}
                         mv ${ALN_DIR}/${ML_TREE_PREFIX}${aln}*treefile ${TREE_DIR}
