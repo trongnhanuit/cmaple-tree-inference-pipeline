@@ -69,8 +69,7 @@ pipeline {
                     sh """
                         ssh ${NCI_ALIAS} << EOF
                         cd  ${WORKING_DIR}
-                        aln_files=$(ls  "${ALN_DIR}"/*.maple)
-						for aln in ${aln_files}; do
+						for aln in $(ls  "${ALN_DIR}"/*.maple); do
     						echo "Inferring a phylogenetic tree from ${aln}"
     						#./${CMAPLE_PATH} -aln ${ALN_DIR}/${aln} -pre ${ALN_DIR}/${ML_TREE_PREFIX}${aln} ${params.CMAPLE_PARAMS}
 						done
