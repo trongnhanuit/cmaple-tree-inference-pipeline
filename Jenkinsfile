@@ -24,6 +24,7 @@ pipeline {
         DATA_DIR = "${WORKING_DIR}/data"
         ALN_DIR = "${DATA_DIR}/aln"
         TREE_DIR = "${DATA_DIR}/tree"
+        SCRIPTS_DIR = "${WORKING_DIR}/scripts"
         BUILD_DIR = "${WORKING_DIR}/builds/build-default"
         CMAPLE_PATH = "${BUILD_DIR}/cmaple"
         ML_TREE_PREFIX = "ML_tree_"
@@ -68,11 +69,12 @@ pipeline {
                 script {
                     sh """
                         ssh ${NCI_ALIAS} << EOF
-                        cd  ${WORKING_DIR}
-						for aln in $(ls  "${ALN_DIR}"/*.maple); do echo "Inferring a phylogenetic tree from ${aln}"; done
-                        echo "Moving the ML trees to ${TREE_DIR}"
-                        mkdir -p ${TREE_DIR}
-                        mv ${ALN_DIR}/${ML_TREE_PREFIX}${aln}*treefile ${TREE_DIR}
+
+                                              
+                        echo "Inferring ML trees by CMAPLE"                        
+                        sh ${SCRIPTS}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX}
+                        
+                       
                         exit
                         EOF
                         """
