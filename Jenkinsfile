@@ -67,6 +67,12 @@ pipeline {
         stage('Infer trees') {
             steps {
                 script {
+                	sh """
+                        ssh ${NCI_ALIAS} << EOF
+                        mkdir -p ${SCRIPTS_DIR}
+                        exit
+                        EOF
+                        """
                 	sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                     sh """
                         ssh ${NCI_ALIAS} << EOF
