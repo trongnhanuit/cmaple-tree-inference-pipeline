@@ -67,12 +67,13 @@ pipeline {
         stage('Infer trees') {
             steps {
                 script {
+                	sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                     sh """
                         ssh ${NCI_ALIAS} << EOF
 
                                               
                         echo "Inferring ML trees by CMAPLE"                        
-                        sh ${SCRIPTS}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX}
+                        sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX}
                         
                        
                         exit
