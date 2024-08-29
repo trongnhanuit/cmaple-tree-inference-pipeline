@@ -23,4 +23,4 @@ done
                         
 echo "Moving the ML trees to ${TREE_DIR}"
 mkdir -p ${TREE_DIR}
-mv ${ALN_DIR}/${ML_TREE_PREFIX}${aln}*treefile ${TREE_DIR}
+mv ${ALN_DIR}/${ML_TREE_PREFIX}*treefile ${TREE_DIR}
