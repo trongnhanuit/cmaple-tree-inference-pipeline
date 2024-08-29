@@ -39,7 +39,7 @@ pipeline {
                         cd  ${WORKING_DIR}
                         git clone --recursive ${TEST_DATA_REPO_URL}
                         mkdir -p ${ALN_DIR}
-                        cp ${TEST_DATA_REPO_DIR}/${params.BRANCH}/*.* ${ALN_DIR}
+                        cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
                         rm -rf ${TEST_DATA_REPO_DIR}
                         exit
                         EOF
