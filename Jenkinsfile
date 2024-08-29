@@ -6,8 +6,11 @@
 
 properties([
     parameters([
-        // string(name: 'BRANCH', defaultValue: 'master', description: 'Branch to build'),
+    	booleanParam(defaultValue: false, description: 'Re-build CMAPLE?', name: 'BUILD_CMAPLE'),
+        string(name: 'CMAPLE_BRANCH', defaultValue: 'main', description: 'Branch to build CMAPLE'),
+        booleanParam(defaultValue: true, description: 'Download testing data?', name: 'DOWNLOAD_DATA'),
         string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The directory containing the testing alignments'),
+        string(name: 'CMAPLE_PARAMS', defaultValue: '-overwrite', description: 'Parameters for running CMAPLE'),
     ])
 ])
 pipeline {
@@ -20,91 +23,91 @@ pipeline {
         TEST_DATA_REPO_DIR = "${WORKING_DIR}/${TEST_DATA_REPO_NAME}"
         DATA_DIR = "${WORKING_DIR}/data"
         ALN_DIR = "${DATA_DIR}/aln"
-        
-        /*GITHUB_REPO_URL = "https://github.com/iqtree/cmaple.git"
-        GITHUB_REPO_NAME = "cmaple"
-        BUILD_SCRIPTS = "${WORKING_DIR}/build-scripts"
-        REPO_DIR = "${WORKING_DIR}/${GITHUB_REPO_NAME}"
-        BUILD_OUTPUT_DIR = "${WORKING_DIR}/builds"
-        BUILD_DEFAULT = "${BUILD_OUTPUT_DIR}/build-default"*/
-
+        TREE_DIR = "${DATA_DIR}/tree"
+        BUILD_DIR = "${WORKING_DIR}/builds/build-default"
+        CMAPLE_PATH = "${BUILD_DIR}/cmaple"
+        ML_TREE_PREFIX = "ML_tree_"
     }
     stages {
     	stage('Download testing data') {
             steps {
                 script {
-                    sh """
-                        ssh ${NCI_ALIAS} << EOF
-                        mkdir -p ${WORKING_DIR}
-                        cd  ${WORKING_DIR}
-                        git clone --recursive ${TEST_DATA_REPO_URL}
-                        mkdir -p ${ALN_DIR}
-                        cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
-                        rm -rf ${TEST_DATA_REPO_DIR}
-                        exit
-                        EOF
-                        """
+                	if (params.DOWNLOAD_DATA) {
+                    	sh """
+                        	ssh ${NCI_ALIAS} << EOF
+                        	mkdir -p ${WORKING_DIR}
+                        	cd  ${WORKING_DIR}
+                        	git clone --recursive ${TEST_DATA_REPO_URL}
+                        	mkdir -p ${ALN_DIR}
+                        	cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
+                        	rm -rf ${TEST_DATA_REPO_DIR}
+                        	exit
+                        	EOF
+                        	"""
+                    }
                 }
             }
         }
-    /*// ssh to NCI_ALIAS and scp build-scripts to working dir in NCI
-        stage('Copy build scripts') {
+        stage("Build CMAPLE") {
             steps {
                 script {
-                    sh "pwd"
-                    sh """
-                        ssh ${NCI_ALIAS} << EOF
-                        mkdir -p ${WORKING_DIR}
-                        mkdir -p ${BUILD_SCRIPTS}
-                        exit
-                        EOF
-                        """
-                    sh "scp -r build-scripts/* ${NCI_ALIAS}:${BUILD_SCRIPTS}"
-                }
-            }
-        }
-        stage('Setup environment') {
-            steps {
-                script {
-                    sh """
-                        ssh ${NCI_ALIAS} << EOF
-                        mkdir -p ${WORKING_DIR}
-                        cd  ${WORKING_DIR}
-                        git clone --recursive ${GITHUB_REPO_URL}
-                        cd ${GITHUB_REPO_NAME}
-                        git checkout ${params.BRANCH}
-                        mkdir -p ${BUILD_OUTPUT_DIR}
-                        cd ${BUILD_OUTPUT_DIR}
-                        rm -rf *
-                        exit
-                        EOF
-                        """
-                }
-            }
-        }
-        stage("Build: Build Default") {
-            steps {
-                script {
-                    sh """
-                        ssh ${NCI_ALIAS} << EOF
+                	if (params.BUILD_CMAPLE) {
+                        echo 'Building CMAPLE'
+                        // trigger jenkins cmaple-build
+                        build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH)]
 
-                                              
-                        echo "building CMAPLE"                        
-                        sh ${BUILD_SCRIPTS}/jenkins-cmake-build-default.sh ${BUILD_DEFAULT} ${REPO_DIR}
+                    }
+                    else {
+                        echo 'Skip building CMAPLE'
+                    }
+                }
+            }
+        }
+        stage('Infer trees') {
+            steps {
+                script {
+                    sh """
+                        ssh ${NCI_ALIAS} << EOF
+                        cd  ${WORKING_DIR}
                         
-                       
+                        // list out all aln files
+                        aln_files=$(ls ${ALN_DIR}/*.maple)
+                        
+                        # Infer a tree for each aln
+						for aln in ${aln_files}; do
+    						echo "Inferring a phylogenetic tree from ${aln}"
+    						./${CMAPLE_PATH} -aln ${ALN_DIR}/${aln} -pre ${ALN_DIR}/${ML_TREE_PREFIX}${aln} ${params.CMAPLE_PARAMS}
+						done
+						
+                        // move trees to a new folder
+                        echo "Moving the ML trees to ${TREE_DIR}"
+                        mv ${ALN_DIR}/${ML_TREE_PREFIX}${aln}*treefile ${TREE_DIR}
+                        
                         exit
                         EOF
                         """
                 }
             }
-        }*/
-
+        }
         stage ('Verify') {
             steps {
                 script {
-                    sh "ssh ${NCI_ALIAS} 'ls -lia ${WORKING_DIR} && ls -ila ${ALN_DIR}'"
-
+                	sh """
+                        ssh ${NCI_ALIAS} << EOF
+                        cd  ${WORKING_DIR}
+                        
+                        echo "Files in ${WORKING_DIR}"
+                        ls -ila ${WORKING_DIR}
+                        
+                         echo "Files in ${ALN_DIR}"
+                        ls -ila ${ALN_DIR}
+                        
+                         echo "Files in ${TREE_DIR}"
+                        ls -ila ${TREE_DIR}
+                        
+                        exit
+                        EOF
+                        """
                 }
             }
         }
