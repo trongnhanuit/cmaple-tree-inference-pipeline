@@ -16,8 +16,8 @@ ML_TREE_PREFIX=$5 # The prefix of ML trees
 ############
 
 for aln in "${ALN_DIR}"/*.maple; do
-    echo "Inferring a phylogenetic tree from ${aln}"
-    cd ${ALN_DIR} && ${CMAPLE_PATH} -aln ${aln} -pre ${ML_TREE_PREFIX}${aln} ${CMAPLE_PARAMS}
+    echo "Inferring a phylogenetic tree from $(basename \"$aln\")"
+    cd ${ALN_DIR} && ${CMAPLE_PATH} -aln $(basename "$aln") -pre ${ML_TREE_PREFIX}${aln} ${CMAPLE_PARAMS}
 done
                         
 echo "Moving the ML trees to ${TREE_DIR}"
