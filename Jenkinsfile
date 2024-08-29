@@ -10,6 +10,7 @@ properties([
         string(name: 'CMAPLE_BRANCH', defaultValue: 'main', description: 'Branch to build CMAPLE'),
         booleanParam(defaultValue: true, description: 'Download testing data?', name: 'DOWNLOAD_DATA'),
         string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The directory containing the testing alignments'),
+        booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
         string(name: 'CMAPLE_PARAMS', defaultValue: '-overwrite', description: 'Parameters for running CMAPLE'),
     ])
 ])
@@ -30,6 +31,21 @@ pipeline {
         ML_TREE_PREFIX = "ML_tree_"
     }
     stages {
+    	stage("Build CMAPLE") {
+            steps {
+                script {
+                	if (params.BUILD_CMAPLE) {
+                        echo 'Building CMAPLE'
+                        // trigger jenkins cmaple-build
+                        build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH)]
+
+                    }
+                    else {
+                        echo 'Skip building CMAPLE'
+                    }
+                }
+            }
+        }
     	stage('Download testing data') {
             steps {
                 script {
@@ -49,42 +65,29 @@ pipeline {
                 }
             }
         }
-        stage("Build CMAPLE") {
-            steps {
-                script {
-                	if (params.BUILD_CMAPLE) {
-                        echo 'Building CMAPLE'
-                        // trigger jenkins cmaple-build
-                        build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH)]
-
-                    }
-                    else {
-                        echo 'Skip building CMAPLE'
-                    }
-                }
-            }
-        }
         stage('Infer trees') {
             steps {
                 script {
-                	sh """
-                        ssh ${NCI_ALIAS} << EOF
-                        mkdir -p ${SCRIPTS_DIR}
-                        exit
-                        EOF
-                        """
-                	sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
-                    sh """
-                        ssh ${NCI_ALIAS} << EOF
+                	if (params.DOWNLOAD_DATA) {
+                		sh """
+                        	ssh ${NCI_ALIAS} << EOF
+                        	mkdir -p ${SCRIPTS_DIR}
+                        	exit
+                        	EOF
+                        	"""
+                		sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
+                    	sh """
+                        	ssh ${NCI_ALIAS} << EOF
 
                                               
-                        echo "Inferring ML trees by CMAPLE"                        
-                        sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${params.CMAPLE_PARAMS} ${ML_TREE_PREFIX}
+                        	echo "Inferring ML trees by CMAPLE"                        
+                        	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${params.CMAPLE_PARAMS} ${ML_TREE_PREFIX}
                         
                        
-                        exit
-                        EOF
-                        """
+                        	exit
+                        	EOF
+                        	"""
+                        }
                 }
             }
         }
