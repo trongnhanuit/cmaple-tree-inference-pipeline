@@ -23,4 +23,7 @@ done
                         
 echo "Moving the ML trees to ${TREE_DIR}"
 mkdir -p ${TREE_DIR}
+# remove old results
+rm -f ${TREE_DIR}/${ML_TREE_PREFIX}*treefile
+# copy new results
 mv ${ALN_DIR}/${ML_TREE_PREFIX}*treefile ${TREE_DIR}
