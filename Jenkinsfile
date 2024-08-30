@@ -11,7 +11,6 @@ properties([
         booleanParam(defaultValue: true, description: 'Download testing data?', name: 'DOWNLOAD_DATA'),
         string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The directory containing the testing alignments'),
         booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
-        string(name: 'CMAPLE_PARAMS', defaultValue: '-overwrite', description: 'Parameters for running CMAPLE'),
     ])
 ])
 pipeline {
@@ -81,7 +80,7 @@ pipeline {
 
                                               
                         	echo "Inferring ML trees by CMAPLE"                        
-                        	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${params.CMAPLE_PARAMS} ${ML_TREE_PREFIX}
+                        	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX}
                         
                        
                         	exit

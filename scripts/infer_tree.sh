@@ -5,8 +5,8 @@
 ALN_DIR=$1 # aln dir
 TREE_DIR=$2 # tree dir
 CMAPLE_PATH=$3 # path to CMAPLE executable
-CMAPLE_PARAMS=$4 # CMAPLE params
-ML_TREE_PREFIX=$5 # The prefix of ML trees
+ML_TREE_PREFIX=$4 # The prefix of ML trees
+CMAPLE_PARAMS="-overwrite" # CMAPLE params
 
 
 ### pre steps #####
