@@ -84,7 +84,7 @@ pipeline {
         stage('Infer trees') {
             steps {
                 script {
-                	if (params.DOWNLOAD_DATA) {
+                	if (params.INFER_TREE) {
                 		sh """
                         	ssh ${NCI_ALIAS} << EOF
                         	mkdir -p ${SCRIPTS_DIR}
