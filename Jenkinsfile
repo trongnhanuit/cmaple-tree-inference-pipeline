@@ -57,6 +57,7 @@ pipeline {
                         		ssh ${NCI_ALIAS} << EOF
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
+                        		mkdir -p ${ALN_DIR}
                         		exit
                         		EOF
                         		"""
