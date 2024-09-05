@@ -57,10 +57,10 @@ pipeline {
                         		ssh ${NCI_ALIAS} << EOF
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
-                        		scp -r ${params.ALN_LOCAL_DIR}/*.* ${ALN_DIR}
                         		exit
                         		EOF
                         		"""
+                        	sh "scp -r ${params.ALN_LOCAL_DIR}/*.* ${NCI_ALIAS}:${ALN_DIR}"
                 		}
                 		else
                 		{
