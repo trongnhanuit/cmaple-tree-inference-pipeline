@@ -9,10 +9,10 @@ properties([
     	booleanParam(defaultValue: false, description: 'Re-build CMAPLE?', name: 'BUILD_CMAPLE'),
         string(name: 'CMAPLE_BRANCH', defaultValue: 'main', description: 'Branch to build CMAPLE'),
         booleanParam(defaultValue: true, description: 'Download testing data?', name: 'DOWNLOAD_DATA'),
-        string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The directory containing the testing alignments'),
+        string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The (remote) directory containing the testing alignments'),
+        string(name: 'ALN_LOCAL_DIR', defaultValue: '', description: 'The (local, if applicable?) directory containing the testing alignments'),
         booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
         string(name: 'MODEL', defaultValue: 'GTR', description: 'Substitution model'),
-        string(name: 'LOCAL_DATA', defaultValue: '', description: 'Local data path (if applicable?)'),
     ])
 ])
 pipeline {
@@ -51,13 +51,13 @@ pipeline {
             steps {
                 script {
                 	if (params.DOWNLOAD_DATA) {
-                		if (params.LOCAL_DATA != '')
+                		if (params.ALN_LOCAL_DIR != '')
                 		{
                 			sh """
                         		ssh ${NCI_ALIAS} << EOF
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
-                        		scp -r ${params.LOCAL_DATA}/*.* ${ALN_DIR}
+                        		scp -r ${params.ALN_LOCAL_DIR}/*.* ${ALN_DIR}
                         		exit
                         		EOF
                         		"""
