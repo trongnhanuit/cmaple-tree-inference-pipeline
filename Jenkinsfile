@@ -12,6 +12,7 @@ properties([
         string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The directory containing the testing alignments'),
         booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
         string(name: 'MODEL', defaultValue: 'GTR', description: 'Substitution model'),
+        string(name: 'LOCAL_DATA', defaultValue: '', description: 'Local data path (if applicable?)'),
     ])
 ])
 pipeline {
@@ -50,17 +51,31 @@ pipeline {
             steps {
                 script {
                 	if (params.DOWNLOAD_DATA) {
-                    	sh """
-                        	ssh ${NCI_ALIAS} << EOF
-                        	mkdir -p ${WORKING_DIR}
-                        	cd  ${WORKING_DIR}
-                        	git clone --recursive ${TEST_DATA_REPO_URL}
-                        	mkdir -p ${ALN_DIR}
-                        	cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
-                        	rm -rf ${TEST_DATA_REPO_DIR}
-                        	exit
-                        	EOF
-                        	"""
+                		if (params.LOCAL_DATA != '')
+                		{
+                			sh """
+                        		ssh ${NCI_ALIAS} << EOF
+                        		mkdir -p ${WORKING_DIR}
+                        		cd  ${WORKING_DIR}
+                        		scp -r ${params.LOCAL_DATA}/*.* ${ALN_DIR}
+                        		exit
+                        		EOF
+                        		"""
+                		}
+                		else
+                		{
+                    		sh """
+                        		ssh ${NCI_ALIAS} << EOF
+                        		mkdir -p ${WORKING_DIR}
+                        		cd  ${WORKING_DIR}
+                        		git clone --recursive ${TEST_DATA_REPO_URL}
+                        		mkdir -p ${ALN_DIR}
+                        		cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
+                        		rm -rf ${TEST_DATA_REPO_DIR}
+                        		exit
+                        		EOF
+                        		"""
+                        }
                     }
                 }
             }
