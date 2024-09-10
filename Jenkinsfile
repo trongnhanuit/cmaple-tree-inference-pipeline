@@ -54,7 +54,7 @@ pipeline {
                 		if (params.ALN_LOCAL_DIR != '')
                 		{
                 			sh """
-                        		ssh ${NCI_ALIAS} << EOF
+                        		ssh -tt ${NCI_ALIAS} << EOF
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
                         		mkdir -p ${ALN_DIR}
@@ -66,7 +66,7 @@ pipeline {
                 		else
                 		{
                     		sh """
-                        		ssh ${NCI_ALIAS} << EOF
+                        		ssh -tt ${NCI_ALIAS} << EOF
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
                         		git clone --recursive ${TEST_DATA_REPO_URL}
@@ -86,14 +86,14 @@ pipeline {
                 script {
                 	if (params.INFER_TREE) {
                 		sh """
-                        	ssh ${NCI_ALIAS} << EOF
+                        	ssh -tt ${NCI_ALIAS} << EOF
                         	mkdir -p ${SCRIPTS_DIR}
                         	exit
                         	EOF
                         	"""
                 		sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                     	sh """
-                        	ssh ${NCI_ALIAS} << EOF
+                        	ssh -tt ${NCI_ALIAS} << EOF
 
                                               
                         	echo "Inferring ML trees by CMAPLE"                        
@@ -111,7 +111,7 @@ pipeline {
             steps {
                 script {
                 	sh """
-                        ssh ${NCI_ALIAS} << EOF
+                        ssh -tt ${NCI_ALIAS} << EOF
                         cd  ${WORKING_DIR}
                         echo "Files in ${WORKING_DIR}"
                         ls -ila ${WORKING_DIR}
@@ -138,5 +138,5 @@ pipeline {
 
 def void cleanWs() {
     // ssh to NCI_ALIAS and remove the working directory
-    // sh "ssh ${NCI_ALIAS} 'rm -rf ${REPO_DIR} ${BUILD_SCRIPTS}'"
+    // sh "ssh -tt ${NCI_ALIAS} 'rm -rf ${REPO_DIR} ${BUILD_SCRIPTS}'"
 }
