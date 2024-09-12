@@ -6,7 +6,7 @@
 
 properties([
     parameters([
-    	booleanParam(defaultValue: false, description: 'Re-build CMAPLE?', name: 'BUILD_CMAPLE'),
+        booleanParam(defaultValue: false, description: 'Re-build CMAPLE?', name: 'BUILD_CMAPLE'),
         string(name: 'CMAPLE_BRANCH', defaultValue: 'main', description: 'Branch to build CMAPLE'),
         booleanParam(defaultValue: true, description: 'Download testing data?', name: 'DOWNLOAD_DATA'),
         string(name: 'ALN_REMOTE_DIR', defaultValue: 'aln/aln_10_taxa', description: 'The (remote) directory containing the testing alignments'),
@@ -34,29 +34,29 @@ pipeline {
         ML_TREE_PREFIX = "ML_tree_"
     }
     stages {
-    	stage('Init variables') {
+        stage('Init variables') {
             steps {
                 script {
                     if (params.USE_CIBIV) {
-                    	NCI_ALIAS = "eingang"
-                    	SSH_COMP_NODE = " ssh -tt cox "
-                    	WORKING_DIR = "/project/AliSim/cmaple"
-        				
-        				TEST_DATA_REPO_DIR = "${WORKING_DIR}/${TEST_DATA_REPO_NAME}"
-        				DATA_DIR = "${WORKING_DIR}/data"
-        				ALN_DIR = "${DATA_DIR}/aln"
-        				TREE_DIR = "${DATA_DIR}/tree"
-        				SCRIPTS_DIR = "${WORKING_DIR}/scripts"
-        				BUILD_DIR = "${WORKING_DIR}/builds/build-default"
-        				CMAPLE_PATH = "${BUILD_DIR}/cmaple"
+                        NCI_ALIAS = "eingang"
+                        SSH_COMP_NODE = " ssh -tt cox "
+                        WORKING_DIR = "/project/AliSim/cmaple"
+                        
+                        TEST_DATA_REPO_DIR = "${WORKING_DIR}/${TEST_DATA_REPO_NAME}"
+                        DATA_DIR = "${WORKING_DIR}/data"
+                        ALN_DIR = "${DATA_DIR}/aln"
+                        TREE_DIR = "${DATA_DIR}/tree"
+                        SCRIPTS_DIR = "${WORKING_DIR}/scripts"
+                        BUILD_DIR = "${WORKING_DIR}/builds/build-default"
+                        CMAPLE_PATH = "${BUILD_DIR}/cmaple"
                     }
                 }
             }
         }
-    	stage("Build CMAPLE") {
+        stage("Build CMAPLE") {
             steps {
                 script {
-                	if (params.BUILD_CMAPLE) {
+                    if (params.BUILD_CMAPLE) {
                         echo 'Building CMAPLE'
                         // trigger jenkins cmaple-build
                         build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH),
@@ -69,37 +69,37 @@ pipeline {
                 }
             }
         }
-    	stage('Download testing data') {
+        stage('Download testing data') {
             steps {
                 script {
-                	if (params.DOWNLOAD_DATA) {
-                		if (params.ALN_LOCAL_DIR != '')
-                		{
-                			sh """
-                        		ssh -tt ${NCI_ALIAS} << EOF
-                        		
-                        		mkdir -p ${WORKING_DIR}
-                        		cd  ${WORKING_DIR}
-                        		mkdir -p ${ALN_DIR}
-                        		exit
-                        		EOF
-                        		"""
-                        	sh "scp -r ${params.ALN_LOCAL_DIR}/*.* ${NCI_ALIAS}:${ALN_DIR}"
-                		}
-                		else
-                		{
-                    		sh """
-                        		ssh -tt ${NCI_ALIAS} << EOF
-                        		
-                        		mkdir -p ${WORKING_DIR}
-                        		cd  ${WORKING_DIR}
-                        		git clone --recursive ${TEST_DATA_REPO_URL}
-                        		mkdir -p ${ALN_DIR}
-                        		cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
-                        		rm -rf ${TEST_DATA_REPO_DIR}
-                        		exit
-                        		EOF
-                        		"""
+                    if (params.DOWNLOAD_DATA) {
+                        if (params.ALN_LOCAL_DIR != '')
+                        {
+                            sh """
+                                ssh -tt ${NCI_ALIAS} << EOF
+
+                                mkdir -p ${WORKING_DIR}
+                                cd  ${WORKING_DIR}
+                                mkdir -p ${ALN_DIR}
+                                exit
+                                EOF
+                                """
+                            sh "scp -r ${params.ALN_LOCAL_DIR}/*.* ${NCI_ALIAS}:${ALN_DIR}"
+                        }
+                        else
+                        {
+                            sh """
+                                ssh -tt ${NCI_ALIAS} << EOF
+                                
+                                mkdir -p ${WORKING_DIR}
+                                cd  ${WORKING_DIR}
+                                git clone --recursive ${TEST_DATA_REPO_URL}
+                                mkdir -p ${ALN_DIR}
+                                cp ${TEST_DATA_REPO_DIR}/${params.ALN_REMOTE_DIR}/*.* ${ALN_DIR}
+                                rm -rf ${TEST_DATA_REPO_DIR}
+                                exit
+                                EOF
+                                """
                         }
                     }
                 }
@@ -108,24 +108,24 @@ pipeline {
         stage('Infer trees') {
             steps {
                 script {
-                	if (params.INFER_TREE) {
-                		sh """
-                        	ssh -tt ${NCI_ALIAS} << EOF
-                        	
-                        	mkdir -p ${SCRIPTS_DIR}
-                        	exit
-                        	EOF
-                        	"""
-                		sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
-                    	sh """
-                        	ssh -tt ${NCI_ALIAS} ${SSH_COMP_NODE}<< EOF
+                    if (params.INFER_TREE) {
+                        sh """
+                            ssh -tt ${NCI_ALIAS} << EOF
+                            
+                            mkdir -p ${SCRIPTS_DIR}
+                            exit
+                            EOF
+                            """
+                        sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
+                        sh """
+                            ssh -tt ${NCI_ALIAS} ${SSH_COMP_NODE}<< EOF
                                              
-                        	echo "Inferring ML trees by CMAPLE"                        
-                        	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX} ${params.MODEL}
+                            echo "Inferring ML trees by CMAPLE"                        
+                            sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX} ${params.MODEL}
                         
-                        	exit
-                        	EOF
-                        	"""
+                            exit
+                            EOF
+                            """
                         }
                 }
             }
@@ -133,7 +133,7 @@ pipeline {
         stage ('Verify') {
             steps {
                 script {
-                	sh """
+                    sh """
                         ssh -tt ${NCI_ALIAS} << EOF
                         
                         cd  ${WORKING_DIR}
