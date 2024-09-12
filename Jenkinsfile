@@ -13,6 +13,7 @@ properties([
         string(name: 'ALN_LOCAL_DIR', defaultValue: '', description: 'The (local, if applicable?) directory containing the testing alignments'),
         booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
         string(name: 'MODEL', defaultValue: 'GTR', description: 'Substitution model'),
+        booleanParam(defaultValue: false, description: 'Use CECC cluster?', name: 'USE_CECC_CLUSTER'),
     ])
 ])
 pipeline {
@@ -32,13 +33,32 @@ pipeline {
         ML_TREE_PREFIX = "ML_tree_"
     }
     stages {
+    	stage('Init variables') {
+            steps {
+                script {
+                    if (params.USE_CECC_CLUSTER) {
+                    	NCI_ALIAS = "cecc_cluster"
+                    	WORKING_DIR = "/home/remote/u7091034/cmaple"
+        				
+        				TEST_DATA_REPO_DIR = "${WORKING_DIR}/${TEST_DATA_REPO_NAME}"
+        				DATA_DIR = "${WORKING_DIR}/data"
+        				ALN_DIR = "${DATA_DIR}/aln"
+        				TREE_DIR = "${DATA_DIR}/tree"
+        				SCRIPTS_DIR = "${WORKING_DIR}/scripts"
+        				BUILD_DIR = "${WORKING_DIR}/builds/build-default"
+        				CMAPLE_PATH = "${BUILD_DIR}/cmaple"
+                    }
+                }
+            }
+        }
     	stage("Build CMAPLE") {
             steps {
                 script {
                 	if (params.BUILD_CMAPLE) {
                         echo 'Building CMAPLE'
                         // trigger jenkins cmaple-build
-                        build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH)]
+                        build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH),
+                        booleanParam(name: 'USE_CECC_CLUSTER', value: USE_CECC_CLUSTER),]
 
                     }
                     else {
@@ -55,6 +75,7 @@ pipeline {
                 		{
                 			sh """
                         		ssh -tt ${NCI_ALIAS} << EOF
+                        		
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
                         		mkdir -p ${ALN_DIR}
@@ -67,6 +88,7 @@ pipeline {
                 		{
                     		sh """
                         		ssh -tt ${NCI_ALIAS} << EOF
+                        		
                         		mkdir -p ${WORKING_DIR}
                         		cd  ${WORKING_DIR}
                         		git clone --recursive ${TEST_DATA_REPO_URL}
@@ -87,6 +109,7 @@ pipeline {
                 	if (params.INFER_TREE) {
                 		sh """
                         	ssh -tt ${NCI_ALIAS} << EOF
+                        	
                         	mkdir -p ${SCRIPTS_DIR}
                         	exit
                         	EOF
@@ -94,12 +117,10 @@ pipeline {
                 		sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                     	sh """
                         	ssh -tt ${NCI_ALIAS} << EOF
-
-                                              
+                                             
                         	echo "Inferring ML trees by CMAPLE"                        
                         	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX} ${params.MODEL}
                         
-                       
                         	exit
                         	EOF
                         	"""
@@ -112,6 +133,7 @@ pipeline {
                 script {
                 	sh """
                         ssh -tt ${NCI_ALIAS} << EOF
+                        
                         cd  ${WORKING_DIR}
                         echo "Files in ${WORKING_DIR}"
                         ls -ila ${WORKING_DIR}
