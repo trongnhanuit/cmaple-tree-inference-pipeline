@@ -13,13 +13,14 @@ properties([
         string(name: 'ALN_LOCAL_DIR', defaultValue: '', description: 'The (local, if applicable?) directory containing the testing alignments'),
         booleanParam(defaultValue: true, description: 'Infer ML trees?', name: 'INFER_TREE'),
         string(name: 'MODEL', defaultValue: 'GTR', description: 'Substitution model'),
-        booleanParam(defaultValue: false, description: 'Use CECC cluster?', name: 'USE_CECC_CLUSTER'),
+        booleanParam(defaultValue: false, description: 'Use CIBIV cluster?', name: 'USE_CIBIV'),
     ])
 ])
 pipeline {
     agent any
     environment {
         NCI_ALIAS = "gadi"
+        SSH_COMP_NODE = ""
         WORKING_DIR = "/scratch/dx61/tl8625/cmaple/ci-cd"
         TEST_DATA_REPO_NAME = "cmaple-testing-data"
         TEST_DATA_REPO_URL = "https://github.com/trongnhanuit/${TEST_DATA_REPO_NAME}.git" 
@@ -36,9 +37,10 @@ pipeline {
     	stage('Init variables') {
             steps {
                 script {
-                    if (params.USE_CECC_CLUSTER) {
-                    	NCI_ALIAS = "cecc_cluster"
-                    	WORKING_DIR = "/home/remote/u7091034/cmaple"
+                    if (params.USE_CIBIV) {
+                    	NCI_ALIAS = "eingang"
+                    	SSH_COMP_NODE = " ssh -tt cox "
+                    	WORKING_DIR = "/project/AliSim/cmaple"
         				
         				TEST_DATA_REPO_DIR = "${WORKING_DIR}/${TEST_DATA_REPO_NAME}"
         				DATA_DIR = "${WORKING_DIR}/data"
@@ -58,7 +60,7 @@ pipeline {
                         echo 'Building CMAPLE'
                         // trigger jenkins cmaple-build
                         build job: 'cmaple-build', parameters: [string(name: 'BRANCH', value: CMAPLE_BRANCH),
-                        booleanParam(name: 'USE_CECC_CLUSTER', value: USE_CECC_CLUSTER),]
+                        booleanParam(name: 'USE_CIBIV', value: USE_CIBIV),]
 
                     }
                     else {
@@ -116,7 +118,7 @@ pipeline {
                         	"""
                 		sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                     	sh """
-                        	ssh -tt ${NCI_ALIAS} << EOF
+                        	ssh -tt ${NCI_ALIAS} ${SSH_COMP_NODE}<< EOF
                                              
                         	echo "Inferring ML trees by CMAPLE"                        
                         	sh ${SCRIPTS_DIR}/infer_tree.sh ${ALN_DIR} ${TREE_DIR} ${CMAPLE_PATH} ${ML_TREE_PREFIX} ${params.MODEL}
