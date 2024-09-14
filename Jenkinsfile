@@ -20,7 +20,7 @@ pipeline {
     agent any
     environment {
         NCI_ALIAS = "gadi"
-        SSH_COMP_NODE = ""
+        SSH_COMP_NODE = " "
         WORKING_DIR = "/scratch/dx61/tl8625/cmaple/ci-cd"
         TEST_DATA_REPO_NAME = "cmaple-testing-data"
         TEST_DATA_REPO_URL = "https://github.com/trongnhanuit/${TEST_DATA_REPO_NAME}.git" 
