@@ -84,7 +84,7 @@ pipeline {
                                 exit
                                 EOF
                                 """
-                            sh "scp -r ${params.ALN_LOCAL_DIR}/*.* ${NCI_ALIAS}:${ALN_DIR}"
+                            sh "rsync -avz --include=\"*/*\" ${params.ALN_LOCAL_DIR}/*.* ${NCI_ALIAS}:${ALN_DIR}"
                         }
                         else
                         {
@@ -116,7 +116,7 @@ pipeline {
                             exit
                             EOF
                             """
-                        sh "scp -r scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
+                        sh "rsync -avz --include=\"*/*\"  scripts/* ${NCI_ALIAS}:${SCRIPTS_DIR}"
                         sh """
                             ssh -tt ${NCI_ALIAS} ${SSH_COMP_NODE}<< EOF
                                              
